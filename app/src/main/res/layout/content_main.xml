@@ -12,6 +12,9 @@
         android:id="@+id/smartlabels_list_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:drawSelectorOnTop="true" />
+        android:drawSelectorOnTop="true"
+        android:listSelector="@drawable/listview_selector" />
+    <!--android:background="?android:attr/activatedBackgroundIndicator"-->
+
 
 </android.support.constraint.ConstraintLayout>

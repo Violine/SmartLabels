@@ -6,4 +6,12 @@
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
+    <string name="edit_label">Edit label</string>
+    <string name="remove_label">Remove label</string>
+    <string name="add_label">Add label</string>
+    <string name="label_header">Заголовок заметки</string>
+    <string name="enter_label_description">Введите текст заметки</string>
+    <string name="add_label_button">Add Label</string>
+    <string name="cancel">Cancel</string>
+    <string name="enter_label_name">Введите название заметки!</string>
 </resources>

@@ -2,8 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/action_add_label"
         android:orderInCategory="100"
-        android:title="@string/action_settings"
+        android:title="@string/add_label"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_remove_label"
+        android:orderInCategory="100"
+        android:title="@string/remove_label"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_edit_label"
+        android:orderInCategory="100"
+        android:title="@string/edit_label"
         app:showAsAction="never" />
 </menu>

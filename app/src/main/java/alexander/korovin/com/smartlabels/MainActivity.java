@@ -1,8 +1,10 @@
 package alexander.korovin.com.smartlabels;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.MenuInflater;
@@ -18,6 +20,9 @@ import android.view.MenuItem;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.PopupMenu;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -26,6 +31,7 @@ public class MainActivity extends AppCompatActivity
 
     ListViewAdapter listViewAdapter;
     ListView listView;
+    Menu menu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,19 +40,57 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        initListView();
+        initFloatingActionButton();
+        //initDrawerLayout(toolbar);
+        //initNavigationView();
+    }
 
+    private void initNavigationView() {
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    private void initDrawerLayout(Toolbar toolbar) {
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+    }
+
+    private void initFloatingActionButton() {
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startAddLabelActivity();
+            }
+        });
+    }
+
+    private void startAddLabelActivity() {
+        Intent intent = new Intent(MainActivity.this, AddLabelActivity.class);
+        startActivity(intent);
+    }
+
+    private void initListView() {
         listViewAdapter = new ListViewAdapter(this, LabelList.getLabelList());
         listView = findViewById(R.id.smartlabels_list_view);
+        listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+        listView.setAdapter(listViewAdapter);
         listView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
             @Override
             public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
-
+                Log.d("LOG_TAG", "position = " + position + ", checked = "
+                        + checked);
             }
 
             @Override
             public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                MenuInflater inflater = mode.getMenuInflater();
-                inflater.inflate(R.menu.main, menu);
+                mode.getMenuInflater().inflate(R.menu.main, menu);
+                menu.findItem(R.id.action_add_label).setVisible(false);
+                menu.findItem(R.id.action_edit_label).setVisible(false);
                 return true;
             }
 
@@ -66,40 +110,28 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
-        listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
-        listView.setAdapter(listViewAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                SparseBooleanArray sparseBooleanArray = listView.getCheckedItemPositions();
-                for (int i = 0; i < sparseBooleanArray.size(); i++) {
+            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+                PopupMenu popupMenu = new PopupMenu(MainActivity.this, view);
+                menu = popupMenu.getMenu();
+                getMenuInflater().inflate(R.menu.main, menu);
+                menu.findItem(R.id.action_add_label).setVisible(false);
 
-                }
+                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        return handleMenuItemClick(item.getItemId(), position);
+                    }
+                });
+                popupMenu.show();
             }
         });
-
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -109,34 +141,52 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+        menu.findItem(R.id.action_edit_label).setVisible(false);
+        menu.findItem(R.id.action_remove_label).setVisible(false);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        handleMenuItemClick(item.getItemId(), 0);
+        return true;
+    }
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+    private boolean handleMenuItemClick(int id, int position) {
+        switch (id) {
+            case R.id.action_add_label: {
+                startAddLabelActivity();
+                return true;
+            }
+            case R.id.action_edit_label: {
+                Label oldLabel = LabelList.getLabelList().get(position);
+                Intent intent = new Intent(MainActivity.this, AddLabelActivity.class);
+                intent.putExtra("LABEL_HEADER", oldLabel.getLabelHeader());
+                intent.putExtra("LABEL_DESCRIPTION", oldLabel.getLabelDescription());
+                intent.putExtra("POSITION", position);
+                intent.putExtra("EDIT","EDIT");
+                startActivity(intent);
+                return true;
+
+            }
+            case R.id.action_remove_label: {
+                listViewAdapter.removeLabel(position);
+                return true;
+            }
+            default: {
+                return false;
+            }
         }
-
-        return super.onOptionsItemSelected(item);
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
-            // Handle the camera action
+
         } else if (id == R.id.nav_gallery) {
 
         } else if (id == R.id.nav_slideshow) {
@@ -149,7 +199,7 @@ public class MainActivity extends AppCompatActivity
 
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }

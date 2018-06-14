@@ -20,15 +20,11 @@ public class LabelList {
         return labelList;
     }
 
-    private void addNewLabel(String labelHeader, String labelDescription) {
-        labelList.add(new Label(labelHeader, labelDescription));
+    public static void addLabelToList(Label label) {
+        labelList.add(label);
     }
 
-    private void removeLabel(int position) {
-        labelList.remove(position);
-    }
-
-    private void editLabel() {
-        // пока не придумал что написать
+    public static void editLabelToPosition(int position, Label label) {
+        labelList.set(position, label);
     }
 }
