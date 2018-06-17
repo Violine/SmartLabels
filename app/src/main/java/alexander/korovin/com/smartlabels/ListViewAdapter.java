@@ -54,15 +54,5 @@ public class ListViewAdapter extends BaseAdapter {
 
     }
 
-    public void addLabel(String labelHeader, String labelDescription) {
-        labels.add(new Label(labelHeader, labelDescription));
-        notifyDataSetChanged();
-    }
 
-    public void editLabel(int position, Label newLabel) {
-        if (labels.size() > 0) {
-            labels.set(position, newLabel);
-            notifyDataSetChanged();
-        }
-    }
 }

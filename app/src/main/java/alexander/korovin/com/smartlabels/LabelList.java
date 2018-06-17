@@ -1,30 +1,56 @@
 package alexander.korovin.com.smartlabels;
 
+import android.util.Log;
+import android.widget.Toast;
+
 import java.util.ArrayList;
 
 public class LabelList {
     private static ArrayList<Label> labelList = new ArrayList<>();
+    private static int labelId;
 
     static {
-        labelList.add(new Label("Тестовая заметка 1", "Описание тестовой заметки 1"));
-        labelList.add(new Label("Тестовая заметка 2", "Описание тестовой заметки 2"));
-        labelList.add(new Label("Тестовая заметка 3", "Описание тестовой заметки 3"));
-        labelList.add(new Label("Тестовая заметка 4", "Описание тестовой заметки 4"));
-        labelList.add(new Label("Тестовая заметка 5", "Описание тестовой заметки 5"));
-        labelList.add(new Label("Тестовая заметка 6", "Описание тестовой заметки 6"));
-        labelList.add(new Label("Тестовая заметка 7", "Описание тестовой заметки 7"));
-        labelList.add(new Label("Тестовая заметка 8", "Описание тестовой заметки 8"));
+        for (int i = 0; i < 15; i++) {
+            labelList.add(new Label("Тестовая заметка " + i, "id" + labelId, labelId));
+            labelId++;
+        }
     }
 
-    public static ArrayList<Label> getLabelList() {
+    protected static ArrayList<Label> getLabelList() {
         return labelList;
     }
 
-    public static void addLabelToList(Label label) {
-        labelList.add(label);
+    protected static void addLabelToList(String labelHeaderText, String labelDescriptionText) {
+        labelId++;
+        labelList.add(new Label(labelHeaderText, labelDescriptionText, labelId));
     }
 
-    public static void editLabelToPosition(int position, Label label) {
-        labelList.set(position, label);
+    protected static void editLabelToPosition(int labelId, String labelHeaderText, String labelDescriptionText) {
+        int position = getPositionFromId(labelId);
+        if (position == 666) {
+            Log.e("getPositionFromId", "Error");
+        } else {
+            labelList.set(position, new Label(labelHeaderText, labelDescriptionText, labelId));
+        }
+    }
+
+    protected static void removeLabelToPosition(int positionInListView) {
+        if (labelList.size() > 0) {
+            int position = getPositionFromId(positionInListView);
+            labelList.remove(position);
+        }
+    }
+
+    private static int getPositionFromId(int labelId) {
+        int thisLabelId = 666;
+        if (labelList.size() > 0) {
+            for (int i = 0; i < labelList.size(); i++) {
+                if (labelList.get(i).getLabelId() == labelId) {
+                    thisLabelId = i;
+                    break;
+                } else thisLabelId = 666;
+            }
+        }
+        return thisLabelId;
     }
 }

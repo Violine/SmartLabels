@@ -1,13 +1,12 @@
 package alexander.korovin.com.smartlabels;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
-import android.view.MenuInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -21,8 +20,6 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.PopupMenu;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -82,6 +79,14 @@ public class MainActivity extends AppCompatActivity
         listView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
             @Override
             public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
+                if (checked) {
+                    View view = listView.getChildAt(position);
+                    view.setBackgroundColor(getResources().getColor(R.color.checkedElementListView));
+                } else {
+                    View view = listView.getChildAt(position);
+                    view.setBackgroundColor(Color.TRANSPARENT);
+                }
+                listViewAdapter.notifyDataSetChanged();
                 Log.d("LOG_TAG", "position = " + position + ", checked = "
                         + checked);
             }
@@ -91,6 +96,7 @@ public class MainActivity extends AppCompatActivity
                 mode.getMenuInflater().inflate(R.menu.main, menu);
                 menu.findItem(R.id.action_add_label).setVisible(false);
                 menu.findItem(R.id.action_edit_label).setVisible(false);
+
                 return true;
             }
 
@@ -101,8 +107,32 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-                mode.finish();
-                return false;
+                switch (item.getItemId()) {
+                    case R.id.action_remove_label:
+                        deleteSelectedItems();
+                        listViewAdapter.notifyDataSetChanged();
+                        for (int i = 0; i < listView.getCount(); i++)
+                            listView.setItemChecked(i, false);
+                        mode.finish();
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+
+            private void deleteSelectedItems() {
+                SparseBooleanArray checkedElement = listView.getCheckedItemPositions();
+                ArrayList<Integer> idForRemove = new ArrayList<>();
+                for (int i = 0; i < checkedElement.size(); i++) {
+                    int position = checkedElement.keyAt(i);
+                    if (checkedElement.get(position)) {
+                        idForRemove.add(LabelList.getLabelList().get(position).getLabelId());
+                    }
+                }
+                for (int i = 0; i < idForRemove.size(); i++) {
+                    LabelList.removeLabelToPosition(idForRemove.get(i));
+                }
             }
 
             @Override
@@ -112,7 +142,7 @@ public class MainActivity extends AppCompatActivity
         });
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+            public void onItemClick(final AdapterView<?> parent, final View view, final int position, long id) {
                 PopupMenu popupMenu = new PopupMenu(MainActivity.this, view);
                 menu = popupMenu.getMenu();
                 getMenuInflater().inflate(R.menu.main, menu);
@@ -157,6 +187,7 @@ public class MainActivity extends AppCompatActivity
         switch (id) {
             case R.id.action_add_label: {
                 startAddLabelActivity();
+                listViewAdapter.notifyDataSetChanged();
                 return true;
             }
             case R.id.action_edit_label: {
@@ -164,14 +195,15 @@ public class MainActivity extends AppCompatActivity
                 Intent intent = new Intent(MainActivity.this, AddLabelActivity.class);
                 intent.putExtra("LABEL_HEADER", oldLabel.getLabelHeader());
                 intent.putExtra("LABEL_DESCRIPTION", oldLabel.getLabelDescription());
-                intent.putExtra("POSITION", position);
-                intent.putExtra("EDIT","EDIT");
+                intent.putExtra("ID", oldLabel.getLabelId());
+                intent.putExtra("EDIT", "EDIT");
                 startActivity(intent);
+                listViewAdapter.notifyDataSetChanged();
                 return true;
-
             }
             case R.id.action_remove_label: {
-                listViewAdapter.removeLabel(position);
+                LabelList.removeLabelToPosition(LabelList.getLabelList().get(position).getLabelId());
+                listViewAdapter.notifyDataSetChanged();
                 return true;
             }
             default: {

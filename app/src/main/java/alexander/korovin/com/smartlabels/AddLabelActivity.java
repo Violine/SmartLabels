@@ -25,7 +25,7 @@ public class AddLabelActivity extends AppCompatActivity {
         if (getIntent().getStringExtra("LABEL_HEADER") != null) {
             oldHeaderText = getIntent().getStringExtra("LABEL_HEADER");
             oldDescriptionText = getIntent().getStringExtra("LABEL_DESCRIPTION");
-            position = getIntent().getIntExtra("POSITION", 0);
+            position = getIntent().getIntExtra("ID", 0);
             labelDescriptionText.setText(oldDescriptionText);
             labelHeaderText.setText(oldHeaderText);
         }
@@ -45,13 +45,13 @@ public class AddLabelActivity extends AppCompatActivity {
                         if (labelDescriptionText.getText().toString().equals("")) {
                             labelDescriptionText.setText("");
                         }
-                        LabelList.addLabelToList(new Label(labelHeaderText.getText().toString(), labelDescriptionText.getText().toString()));
+                        LabelList.addLabelToList(labelHeaderText.getText().toString(), labelDescriptionText.getText().toString());
                         finish();
                     } else {
                         Toast.makeText(AddLabelActivity.this, R.string.enter_label_name, Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    LabelList.editLabelToPosition(position, new Label(labelHeaderText.getText().toString(), labelDescriptionText.getText().toString()));
+                    LabelList.editLabelToPosition(position, labelHeaderText.getText().toString(), labelDescriptionText.getText().toString());
                     finish();
                 }
             }
