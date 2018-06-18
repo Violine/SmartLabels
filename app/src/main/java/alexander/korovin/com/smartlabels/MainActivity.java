@@ -1,9 +1,17 @@
 package alexander.korovin.com.smartlabels;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
@@ -20,15 +28,22 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.PopupMenu;
+import android.widget.TextView;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    ListViewAdapter listViewAdapter;
-    ListView listView;
-    Menu menu;
+    private ListViewAdapter listViewAdapter;
+    private ListView listView;
+    private Menu menu;
+    private LocationManager locationManager;
+
+    private static long MIN_DISTANCE_DELTA = 10; // 10 meters
+    private static long MIN_TIME_DELTA = 15000; // 1 min
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,8 +54,89 @@ public class MainActivity extends AppCompatActivity
 
         initListView();
         initFloatingActionButton();
+        startLocation();
         //initDrawerLayout(toolbar);
         //initNavigationView();
+    }
+
+    private void startLocation() {
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        Location currentLocation;
+
+        TextView currentLocationTextView = findViewById(R.id.currentLocationTextView);
+
+        boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        double latitude;
+        double longitude;
+
+        if (!isGPSEnabled && !isNetworkEnabled) {
+            Log.d("LOCATION", "PROVIDER_NOT_ACTIVE");
+        } else {
+            if (ActivityCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                Log.d("LOCATION", "NOT_PERMISSION_FOR_LOCATION");
+                return;
+            }
+            if (isNetworkEnabled) {
+                Log.d("Location", "Coarse Enabled");
+                if (locationManager != null) {
+                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME_DELTA,
+                            MIN_DISTANCE_DELTA, (LocationListener) this);
+                    currentLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                    if (currentLocation != null) {
+//                        latitude = currentLocation.getLatitude();
+//                        longitude = currentLocation.getLongitude();
+                        currentLocationTextView.setText(getApplicationState(currentLocation));
+                    }
+                }
+            }
+            if (isGPSEnabled) {
+                Log.d("Location", "GPS Enabled");
+                if (locationManager != null) {
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_DELTA,
+                            MIN_DISTANCE_DELTA, (LocationListener) this);
+                    currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                    if (currentLocation != null) {
+//                        latitude = currentLocation.getLatitude();
+//                        longitude = currentLocation.getLongitude();
+                        currentLocationTextView.setText(getApplicationState(currentLocation));
+                    }
+                }
+            }
+        }
+    }
+
+    private String getApplicationState(Location location) {
+        final Geocoder geocoder = new Geocoder(this);
+
+        List<Address> list;
+        try {
+            list = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return e.getLocalizedMessage();
+        }
+        if (list.isEmpty()) return "LOCATION NOT FOUND";
+        Address currentAddress = list.get(0);
+        final int index = currentAddress.getMaxAddressLineIndex();
+        String postal = " ";
+
+        if (index >= 0) {
+            postal = currentAddress.getAddressLine(index);
+        }
+
+        StringBuilder builder = new StringBuilder();
+        final String separator = ", ";
+        builder.append(postal).append(separator)
+                .append(currentAddress.getCountryName()).append(separator)
+                .append(currentAddress.getAdminArea()).append(separator)
+                .append(currentAddress.getThoroughfare()).append(separator)
+                .append(currentAddress.getSubThoroughfare());
+
+        return builder.toString();
     }
 
     private void initNavigationView() {
