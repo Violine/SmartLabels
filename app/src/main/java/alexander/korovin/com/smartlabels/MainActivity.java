@@ -1,13 +1,13 @@
 package alexander.korovin.com.smartlabels;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -29,6 +29,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -62,33 +63,26 @@ public class MainActivity extends AppCompatActivity
     private void startLocation() {
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         Location currentLocation;
-
         TextView currentLocationTextView = findViewById(R.id.currentLocationTextView);
 
         boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        double latitude;
-        double longitude;
 
         if (!isGPSEnabled && !isNetworkEnabled) {
             Log.d("LOCATION", "PROVIDER_NOT_ACTIVE");
         } else {
-            if (ActivityCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 Log.d("LOCATION", "NOT_PERMISSION_FOR_LOCATION");
+                changeLocationPermission(this, "Enable location permission");
+                this.recreate();
                 return;
             }
             if (isNetworkEnabled) {
                 Log.d("Location", "Coarse Enabled");
                 if (locationManager != null) {
-                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME_DELTA,
-                            MIN_DISTANCE_DELTA, (LocationListener) this);
                     currentLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                     if (currentLocation != null) {
-//                        latitude = currentLocation.getLatitude();
-//                        longitude = currentLocation.getLongitude();
                         currentLocationTextView.setText(getApplicationState(currentLocation));
                     }
                 }
@@ -96,12 +90,8 @@ public class MainActivity extends AppCompatActivity
             if (isGPSEnabled) {
                 Log.d("Location", "GPS Enabled");
                 if (locationManager != null) {
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_DELTA,
-                            MIN_DISTANCE_DELTA, (LocationListener) this);
                     currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                     if (currentLocation != null) {
-//                        latitude = currentLocation.getLatitude();
-//                        longitude = currentLocation.getLongitude();
                         currentLocationTextView.setText(getApplicationState(currentLocation));
                     }
                 }
@@ -109,18 +99,26 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private static void changeLocationPermission(Activity context, String toastText) {
+        Toast.makeText(context, toastText, Toast.LENGTH_SHORT).show();
+        ActivityCompat.requestPermissions(context,
+                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                0xFF);
+    }
+
+
     private String getApplicationState(Location location) {
         final Geocoder geocoder = new Geocoder(this);
 
-        List<Address> list;
+        List<Address> addressList;
         try {
-            list = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+            addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
         } catch (IOException e) {
             e.printStackTrace();
             return e.getLocalizedMessage();
         }
-        if (list.isEmpty()) return "LOCATION NOT FOUND";
-        Address currentAddress = list.get(0);
+        if (addressList.isEmpty()) return "LOCATION NOT FOUND";
+        Address currentAddress = addressList.get(0);
         final int index = currentAddress.getMaxAddressLineIndex();
         String postal = " ";
 
