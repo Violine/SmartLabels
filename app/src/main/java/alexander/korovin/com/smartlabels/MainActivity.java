@@ -2,14 +2,17 @@ package alexander.korovin.com.smartlabels;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
@@ -27,6 +30,7 @@ import android.view.MenuItem;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.MultiAutoCompleteTextView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,6 +46,7 @@ public class MainActivity extends AppCompatActivity
     private ListView listView;
     private Menu menu;
     private LocationManager locationManager;
+    private MyLocationListener locationListener = new MyLocationListener(this);
 
     private static long MIN_DISTANCE_DELTA = 10; // 10 meters
     private static long MIN_TIME_DELTA = 15000; // 1 min
@@ -71,41 +76,30 @@ public class MainActivity extends AppCompatActivity
         if (!isGPSEnabled && !isNetworkEnabled) {
             Log.d("LOCATION", "PROVIDER_NOT_ACTIVE");
         } else {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                    ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                Log.d("LOCATION", "NOT_PERMISSION_FOR_LOCATION");
-                changeLocationPermission(this, "Enable location permission");
-                this.recreate();
-                return;
-            }
-            if (isNetworkEnabled) {
-                Log.d("Location", "Coarse Enabled");
-                if (locationManager != null) {
-                    currentLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                    if (currentLocation != null) {
-                        currentLocationTextView.setText(getApplicationState(currentLocation));
+            if (checkPermission()) {
+                if (isNetworkEnabled) {
+                    Log.d("Location", "Coarse Enabled");
+                    if (locationManager != null) {
+                        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME_DELTA, MIN_DISTANCE_DELTA, locationListener);
+                        currentLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                        if (currentLocation != null) {
+                            currentLocationTextView.setText(getApplicationState(currentLocation));
+                        }
                     }
                 }
-            }
-            if (isGPSEnabled) {
-                Log.d("Location", "GPS Enabled");
-                if (locationManager != null) {
-                    currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                    if (currentLocation != null) {
-                        currentLocationTextView.setText(getApplicationState(currentLocation));
+                if (isGPSEnabled) {
+                    Log.d("Location", "GPS Enabled");
+                    if (locationManager != null) {
+                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_DELTA, MIN_DISTANCE_DELTA, locationListener);
+                        currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                        if (currentLocation != null) {
+                            currentLocationTextView.setText(getApplicationState(currentLocation));
+                        }
                     }
                 }
             }
         }
     }
-
-    private static void changeLocationPermission(Activity context, String toastText) {
-        Toast.makeText(context, toastText, Toast.LENGTH_SHORT).show();
-        ActivityCompat.requestPermissions(context,
-                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
-                0xFF);
-    }
-
 
     private String getApplicationState(Location location) {
         final Geocoder geocoder = new Geocoder(this);
@@ -306,6 +300,48 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private boolean checkPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION}, 100);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (checkPermission()) {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, locationListener);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        boolean persmissionsGranted = false;
+        if (requestCode == 100) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 1 && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    persmissionsGranted = true;
+                } else {
+                    persmissionsGranted = false;
+                }
+            } else {
+                persmissionsGranted = false;
+            }
+        }
+        if (persmissionsGranted) {
+            recreate();
+        }
+    }
+
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -328,5 +364,37 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+}
+
+class MyLocationListener implements LocationListener {
+    Context context;
+
+    MyLocationListener(Context context) {
+        this.context = context;
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        if (location != null) {
+            Toast.makeText(context, "КООРДИНАТЫ ОБНОВЛЕНЫ", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(context, "НЕ УДАЛОСЬ ОПРЕДЕЛИТЬ КООРДИНАТЫ", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
     }
 }
