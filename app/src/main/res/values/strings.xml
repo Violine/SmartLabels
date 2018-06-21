@@ -14,4 +14,5 @@
     <string name="add_label_button">Add Label</string>
     <string name="cancel">Cancel</string>
     <string name="enter_label_name">Введите название заметки!</string>
+    <string name="weather_in_your_city">Температура в вашем городе: </string>
 </resources>

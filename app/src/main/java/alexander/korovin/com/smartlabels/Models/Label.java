@@ -1,9 +1,10 @@
-package alexander.korovin.com.smartlabels;
+package alexander.korovin.com.smartlabels.Models;
 
 public class Label {
     private int labelId;
     private String labelHeader;
     private String labelDescription;
+    private boolean isChecked;
 
     public Label(String labelHeader, String labelDescription, int labelId) {
         this.labelHeader = labelHeader;
@@ -26,6 +27,14 @@ public class Label {
 
     public void setLabelDescription(String labelDescription) {
         this.labelDescription = labelDescription;
+    }
+
+    public void setChecked(boolean checked) {
+        isChecked = checked;
+    }
+
+    public boolean isChecked() {
+        return isChecked;
     }
 
     public int getLabelId() {

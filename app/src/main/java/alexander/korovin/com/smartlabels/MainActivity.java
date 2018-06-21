@@ -1,7 +1,6 @@
 package alexander.korovin.com.smartlabels;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -30,7 +29,6 @@ import android.view.MenuItem;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.MultiAutoCompleteTextView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,37 +37,71 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import alexander.korovin.com.smartlabels.Models.Label;
+import alexander.korovin.com.smartlabels.Models.LabelList;
+import alexander.korovin.com.smartlabels.Models.Weather;
+import alexander.korovin.com.smartlabels.OpenWeathetMapApi.IOpenWeatherMapApi;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private ListViewAdapter listViewAdapter;
     private ListView listView;
     private Menu menu;
+    private TextView currentLocationTextView;
+    private TextView currentWeatherTextView;
     private LocationManager locationManager;
+    private Location currentLocation;
     private MyLocationListener locationListener = new MyLocationListener(this);
+    private String currentLocality = "";
 
     private static long MIN_DISTANCE_DELTA = 10; // 10 meters
     private static long MIN_TIME_DELTA = 15000; // 1 min
+    private static String APP_ID_KEY = "480977819e7a40036456f129028da3f7";
+    private static String UNITS = "metric";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
+        currentLocationTextView = findViewById(R.id.currentLocationTextView);
+        currentWeatherTextView = findViewById(R.id.currentWeatherTextView);
         setSupportActionBar(toolbar);
 
         initListView();
         initFloatingActionButton();
         startLocation();
+        getWeather(currentLocality);
         //initDrawerLayout(toolbar);
         //initNavigationView();
     }
 
+    private void getWeather(String currentLocality) {
+        App.getApi().getData(currentLocality, APP_ID_KEY, UNITS).enqueue(new Callback<Weather>() {
+
+            @Override
+            public void onResponse(Call<Weather> call, Response<Weather> response) {
+                Weather data = response.body();
+                if (response.isSuccessful()) {
+                    currentWeatherTextView.setText(String.format("%s%s", getString(R.string.weather_in_your_city), data.getTempWithDegree()));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Weather> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "An error occurred during networking", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
     private void startLocation() {
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        Location currentLocation;
-        TextView currentLocationTextView = findViewById(R.id.currentLocationTextView);
-
         boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
@@ -113,20 +145,13 @@ public class MainActivity extends AppCompatActivity
         }
         if (addressList.isEmpty()) return "LOCATION NOT FOUND";
         Address currentAddress = addressList.get(0);
-        final int index = currentAddress.getMaxAddressLineIndex();
-        String postal = " ";
-
-        if (index >= 0) {
-            postal = currentAddress.getAddressLine(index);
-        }
 
         StringBuilder builder = new StringBuilder();
         final String separator = ", ";
-        builder.append(postal).append(separator)
-                .append(currentAddress.getCountryName()).append(separator)
-                .append(currentAddress.getAdminArea()).append(separator)
-                .append(currentAddress.getThoroughfare()).append(separator)
-                .append(currentAddress.getSubThoroughfare());
+        currentLocality = currentAddress.getLocality();
+        builder.append(currentAddress.getCountryName()).append(separator)
+                .append(currentLocality);
+
 
         return builder.toString();
     }
@@ -168,11 +193,9 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
                 if (checked) {
-                    View view = listView.getChildAt(position);
-                    view.setBackgroundColor(getResources().getColor(R.color.checkedElementListView));
+                    listViewAdapter.getItem(position).setChecked(true);
                 } else {
-                    View view = listView.getChildAt(position);
-                    view.setBackgroundColor(Color.TRANSPARENT);
+                    listViewAdapter.getItem(position).setChecked(false);
                 }
                 listViewAdapter.notifyDataSetChanged();
                 Log.d("LOG_TAG", "position = " + position + ", checked = "
@@ -319,6 +342,10 @@ public class MainActivity extends AppCompatActivity
         super.onResume();
         if (checkPermission()) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, locationListener);
+            currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (currentLocation != null) {
+                currentLocationTextView.setText(getApplicationState(currentLocation));
+            }
         }
     }
 

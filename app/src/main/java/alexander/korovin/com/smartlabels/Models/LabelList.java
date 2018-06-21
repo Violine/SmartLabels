@@ -1,7 +1,6 @@
-package alexander.korovin.com.smartlabels;
+package alexander.korovin.com.smartlabels.Models;
 
 import android.util.Log;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -16,16 +15,16 @@ public class LabelList {
         }
     }
 
-    protected static ArrayList<Label> getLabelList() {
+    public static ArrayList<Label> getLabelList() {
         return labelList;
     }
 
-    protected static void addLabelToList(String labelHeaderText, String labelDescriptionText) {
+    public static void addLabelToList(String labelHeaderText, String labelDescriptionText) {
         labelId++;
         labelList.add(new Label(labelHeaderText, labelDescriptionText, labelId));
     }
 
-    protected static void editLabelToPosition(int labelId, String labelHeaderText, String labelDescriptionText) {
+    public static void editLabelToPosition(int labelId, String labelHeaderText, String labelDescriptionText) {
         int position = getPositionFromId(labelId);
         if (position == 666) {
             Log.e("getPositionFromId", "Error");
@@ -34,7 +33,7 @@ public class LabelList {
         }
     }
 
-    protected static void removeLabelToPosition(int positionInListView) {
+    public static void removeLabelToPosition(int positionInListView) {
         if (labelList.size() > 0) {
             int position = getPositionFromId(positionInListView);
             labelList.remove(position);

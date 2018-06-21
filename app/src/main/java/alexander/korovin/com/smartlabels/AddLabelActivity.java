@@ -7,6 +7,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import alexander.korovin.com.smartlabels.Models.LabelList;
+
 public class AddLabelActivity extends AppCompatActivity {
     Button addLabelButton;
     Button cancelButton;
