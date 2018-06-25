@@ -1,4 +1,4 @@
-package alexander.korovin.com.smartlabels;
+package alexander.korovin.com.smartlabels.Utils;
 
 import android.app.Application;
 

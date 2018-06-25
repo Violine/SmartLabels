@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="300dp"
     android:layout_height="match_parent"
-    tools:context=".AddLabelActivity">
+    tools:context=".Activities.AddLabelActivity">
 
     <EditText
         android:id="@+id/add_label_header_textview"
@@ -61,7 +61,7 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:text="@string/add_label_button" />
+                    android:text="@string/save" />
 
                 <Button
                     android:id="@+id/cancel_add_label_button"

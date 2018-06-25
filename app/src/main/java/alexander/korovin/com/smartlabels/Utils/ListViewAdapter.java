@@ -1,4 +1,4 @@
-package alexander.korovin.com.smartlabels;
+package alexander.korovin.com.smartlabels.Utils;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -11,6 +11,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import alexander.korovin.com.smartlabels.Models.Label;
+import alexander.korovin.com.smartlabels.R;
 
 public class ListViewAdapter extends BaseAdapter {
     private Context context;

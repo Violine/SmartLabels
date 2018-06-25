@@ -1,16 +1,16 @@
-package alexander.korovin.com.smartlabels;
+package alexander.korovin.com.smartlabels.Activities;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -37,10 +37,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import alexander.korovin.com.smartlabels.Utils.App;
+import alexander.korovin.com.smartlabels.Utils.ListViewAdapter;
 import alexander.korovin.com.smartlabels.Models.Label;
 import alexander.korovin.com.smartlabels.Models.LabelList;
 import alexander.korovin.com.smartlabels.Models.Weather;
-import alexander.korovin.com.smartlabels.OpenWeathetMapApi.IOpenWeatherMapApi;
+import alexander.korovin.com.smartlabels.R;
+import alexander.korovin.com.smartlabels.Utils.SaveReadToFileUtils;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -57,12 +60,20 @@ public class MainActivity extends AppCompatActivity
     private Location currentLocation;
     private MyLocationListener locationListener = new MyLocationListener(this);
     private String currentLocality = "";
+    private ArrayList<Label> labels;
 
-    private static long MIN_DISTANCE_DELTA = 10; // 10 meters
-    private static long MIN_TIME_DELTA = 15000; // 1 min
-    private static String APP_ID_KEY = "480977819e7a40036456f129028da3f7";
-    private static String UNITS = "metric";
+    private static final long MIN_DISTANCE_DELTA = 10; // 10 meters
+    private static final long MIN_TIME_DELTA = 15000; // 1 min
+    private static final String APP_ID_KEY = "480977819e7a40036456f129028da3f7";
+    private static final String UNITS = "metric";
+    private static final String LABEL_POSITION = "LABEL_POSITION";
+    private static final String LABELS_FILE_NAME = "labels_base";
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        saveLabelsToFIle();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,12 +84,27 @@ public class MainActivity extends AppCompatActivity
         currentWeatherTextView = findViewById(R.id.currentWeatherTextView);
         setSupportActionBar(toolbar);
 
+        readLabelsFromFIle();
         initListView();
         initFloatingActionButton();
         startLocation();
         getWeather(currentLocality);
+
         //initDrawerLayout(toolbar);
         //initNavigationView();
+    }
+
+    private void readLabelsFromFIle() {
+        String pathToBase = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/" + LABELS_FILE_NAME;
+        labels = SaveReadToFileUtils.readFromFile(pathToBase);
+        if (listViewAdapter != null) {
+            listViewAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void saveLabelsToFIle() {
+        String pathToBase = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/" + LABELS_FILE_NAME;
+        SaveReadToFileUtils.saveToFile(pathToBase);
     }
 
     private void getWeather(String currentLocality) {
@@ -151,8 +177,6 @@ public class MainActivity extends AppCompatActivity
         currentLocality = currentAddress.getLocality();
         builder.append(currentAddress.getCountryName()).append(separator)
                 .append(currentLocality);
-
-
         return builder.toString();
     }
 
@@ -248,26 +272,41 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onDestroyActionMode(ActionMode mode) {
-
+                ArrayList<Label> labels = LabelList.getLabelList();
+                for (int i = 0; i < labels.size(); i++) {
+                    labels.get(i).setChecked(false);
+                }
+                listViewAdapter.notifyDataSetChanged();
             }
         });
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(final AdapterView<?> parent, final View view, final int position, long id) {
-                PopupMenu popupMenu = new PopupMenu(MainActivity.this, view);
-                menu = popupMenu.getMenu();
-                getMenuInflater().inflate(R.menu.main, menu);
-                menu.findItem(R.id.action_add_label).setVisible(false);
-
-                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem item) {
-                        return handleMenuItemClick(item.getItemId(), position);
-                    }
-                });
-                popupMenu.show();
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                startLabelInfoActivity(position);
+                //popupMenuInit(view, position);
             }
         });
+    }
+
+    private void startLabelInfoActivity(int position) {
+        Intent intent = new Intent(this, LabelInfoActivity.class);
+        intent.putExtra(LABEL_POSITION, position);
+        startActivity(intent);
+    }
+
+    private void popupMenuInit(View view, final int position) {
+        PopupMenu popupMenu = new PopupMenu(MainActivity.this, view);
+        menu = popupMenu.getMenu();
+        getMenuInflater().inflate(R.menu.main, menu);
+        menu.findItem(R.id.action_add_label).setVisible(false);
+
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                return handleMenuItemClick(item.getItemId(), position);
+            }
+        });
+        popupMenu.show();
     }
 
     @Override
@@ -340,6 +379,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        readLabelsFromFIle();
         if (checkPermission()) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, locationListener);
             currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);

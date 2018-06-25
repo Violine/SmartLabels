@@ -1,6 +1,8 @@
 package alexander.korovin.com.smartlabels.Models;
 
-public class Label {
+import java.io.Serializable;
+
+public class Label implements Serializable{
     private int labelId;
     private String labelHeader;
     private String labelDescription;

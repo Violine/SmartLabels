@@ -1,5 +1,6 @@
-package alexander.korovin.com.smartlabels;
+package alexander.korovin.com.smartlabels.Activities;
 
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -8,15 +9,18 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import alexander.korovin.com.smartlabels.Models.LabelList;
+import alexander.korovin.com.smartlabels.R;
+import alexander.korovin.com.smartlabels.Utils.SaveReadToFileUtils;
 
 public class AddLabelActivity extends AppCompatActivity {
-    Button addLabelButton;
-    Button cancelButton;
-    EditText labelHeaderText;
-    EditText labelDescriptionText;
-    String oldHeaderText;
-    String oldDescriptionText;
-    int position;
+    private Button addLabelButton;
+    private Button cancelButton;
+    private EditText labelHeaderText;
+    private EditText labelDescriptionText;
+    private String oldHeaderText;
+    private String oldDescriptionText;
+    private int position;
+    private static final String LABELS_FILE_NAME = "labels_base";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +52,9 @@ public class AddLabelActivity extends AppCompatActivity {
                             labelDescriptionText.setText("");
                         }
                         LabelList.addLabelToList(labelHeaderText.getText().toString(), labelDescriptionText.getText().toString());
+                        String pathToBase = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/" + LABELS_FILE_NAME;
+                        SaveReadToFileUtils.saveToFile(pathToBase);
+                        
                         finish();
                     } else {
                         Toast.makeText(AddLabelActivity.this, R.string.enter_label_name, Toast.LENGTH_SHORT).show();

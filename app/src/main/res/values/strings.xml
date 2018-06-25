@@ -15,4 +15,8 @@
     <string name="cancel">Cancel</string>
     <string name="enter_label_name">Введите название заметки!</string>
     <string name="weather_in_your_city">Температура в вашем городе: </string>
+    <string name="title_activity_label_info">LabelInfoActivity</string>
+    <string name="ok_message">OK</string>
+    <string name="edit">EDIT</string>
+    <string name="save">SAVE</string>
 </resources>

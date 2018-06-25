@@ -2,9 +2,10 @@ package alexander.korovin.com.smartlabels.Models;
 
 import android.util.Log;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class LabelList {
+public class LabelList implements Serializable {
     private static ArrayList<Label> labelList = new ArrayList<>();
     private static int labelId;
 
@@ -51,5 +52,9 @@ public class LabelList {
             }
         }
         return thisLabelId;
+    }
+
+    public static void setLabelList(ArrayList<Label> newLabelList) {
+        labelList = newLabelList;
     }
 }
