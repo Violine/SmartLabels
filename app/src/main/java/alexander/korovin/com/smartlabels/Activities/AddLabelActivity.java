@@ -54,7 +54,7 @@ public class AddLabelActivity extends AppCompatActivity {
                         LabelList.addLabelToList(labelHeaderText.getText().toString(), labelDescriptionText.getText().toString());
                         String pathToBase = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/" + LABELS_FILE_NAME;
                         SaveReadToFileUtils.saveToFile(pathToBase);
-                        
+
                         finish();
                     } else {
                         Toast.makeText(AddLabelActivity.this, R.string.enter_label_name, Toast.LENGTH_SHORT).show();
