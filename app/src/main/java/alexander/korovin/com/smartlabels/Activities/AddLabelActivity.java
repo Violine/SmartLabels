@@ -10,7 +10,6 @@ import android.widget.Toast;
 
 import alexander.korovin.com.smartlabels.Models.LabelList;
 import alexander.korovin.com.smartlabels.R;
-import alexander.korovin.com.smartlabels.Utils.SaveReadToFileUtils;
 
 public class AddLabelActivity extends AppCompatActivity {
     private Button addLabelButton;
@@ -52,8 +51,8 @@ public class AddLabelActivity extends AppCompatActivity {
                             labelDescriptionText.setText("");
                         }
                         LabelList.addLabelToList(labelHeaderText.getText().toString(), labelDescriptionText.getText().toString());
-                        String pathToBase = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/" + LABELS_FILE_NAME;
-                        SaveReadToFileUtils.saveToFile(pathToBase);
+                        //                      //  String pathToBase = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/" + LABELS_FILE_NAME;
+                        //                      //  SaveReadToFileUtils.saveToFile(pathToBase);
 
                         finish();
                     } else {

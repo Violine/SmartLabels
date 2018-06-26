@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -38,12 +39,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import alexander.korovin.com.smartlabels.Utils.App;
+import alexander.korovin.com.smartlabels.Utils.LabelsBDHelper;
 import alexander.korovin.com.smartlabels.Utils.ListViewAdapter;
 import alexander.korovin.com.smartlabels.Models.Label;
 import alexander.korovin.com.smartlabels.Models.LabelList;
 import alexander.korovin.com.smartlabels.Models.Weather;
 import alexander.korovin.com.smartlabels.R;
-import alexander.korovin.com.smartlabels.Utils.SaveReadToFileUtils;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -60,7 +61,8 @@ public class MainActivity extends AppCompatActivity
     private Location currentLocation;
     private MyLocationListener locationListener = new MyLocationListener(this);
     private String currentLocality = "";
-    private ArrayList<Label> labels;
+    private SQLiteDatabase database;
+    private TextView listIsEmpty;
 
     private static final long MIN_DISTANCE_DELTA = 10; // 10 meters
     private static final long MIN_TIME_DELTA = 15000; // 1 min
@@ -72,7 +74,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPause() {
         super.onPause();
-        saveLabelsToFIle();
+       // saveLabelsToFIle();
     }
 
     @Override
@@ -84,7 +86,8 @@ public class MainActivity extends AppCompatActivity
         currentWeatherTextView = findViewById(R.id.currentWeatherTextView);
         setSupportActionBar(toolbar);
 
-        readLabelsFromFIle();
+        initDB();
+        //readLabelsFromFIle();
         initListView();
         initFloatingActionButton();
         startLocation();
@@ -96,7 +99,7 @@ public class MainActivity extends AppCompatActivity
 
     private void readLabelsFromFIle() {
         String pathToBase = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/" + LABELS_FILE_NAME;
-        labels = SaveReadToFileUtils.readFromFile(pathToBase);
+        // labels = SaveReadToFileUtils.readFromFile(pathToBase);
         if (listViewAdapter != null) {
             listViewAdapter.notifyDataSetChanged();
         }
@@ -104,7 +107,7 @@ public class MainActivity extends AppCompatActivity
 
     private void saveLabelsToFIle() {
         String pathToBase = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/" + LABELS_FILE_NAME;
-        SaveReadToFileUtils.saveToFile(pathToBase);
+        // SaveReadToFileUtils.saveToFile(pathToBase);
     }
 
     private void getWeather(String currentLocality) {
@@ -125,6 +128,9 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+    private void initDB() {
+        database = new LabelsBDHelper(getApplicationContext()).getWritableDatabase();
+    }
 
     private void startLocation() {
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -209,8 +215,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initListView() {
-        listViewAdapter = new ListViewAdapter(this, LabelList.getLabelList());
         listView = findViewById(R.id.smartlabels_list_view);
+        listIsEmpty = findViewById(R.id.empty);
+        listView.setEmptyView(listIsEmpty);
+        listViewAdapter = new ListViewAdapter(getApplicationContext(), database);
         listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
         listView.setAdapter(listViewAdapter);
         listView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
@@ -272,10 +280,10 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onDestroyActionMode(ActionMode mode) {
-                ArrayList<Label> labels = LabelList.getLabelList();
-                for (int i = 0; i < labels.size(); i++) {
-                    labels.get(i).setChecked(false);
-                }
+               // labels = LabelList.getLabelList();
+//                for (int i = 0; i < labels.size(); i++) {
+//                    labels.get(i).setChecked(false);
+//                }
                 listViewAdapter.notifyDataSetChanged();
             }
         });
@@ -379,7 +387,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        readLabelsFromFIle();
+        //readLabelsFromFIle();
         if (checkPermission()) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, locationListener);
             currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);

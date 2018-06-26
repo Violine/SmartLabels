@@ -19,4 +19,5 @@
     <string name="ok_message">OK</string>
     <string name="edit">EDIT</string>
     <string name="save">SAVE</string>
+    <string name="no_labels">Нет записей</string>
 </resources>
