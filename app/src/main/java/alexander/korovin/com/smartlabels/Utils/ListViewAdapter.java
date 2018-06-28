@@ -10,43 +10,20 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import alexander.korovin.com.smartlabels.Models.Label;
 import alexander.korovin.com.smartlabels.R;
 
 public class ListViewAdapter extends BaseAdapter {
     private Context context;
-    private ArrayList<Label> labels = new ArrayList<>();
     private LayoutInflater layoutInflater;
-    private SQLiteDatabase database;
+    private ArrayList<Label> labels;
 
-    public ListViewAdapter(Context context, SQLiteDatabase database) {
+    public ListViewAdapter(Context context, ArrayList<Label> labels) {
         this.context = context;
-        this.database = database;
         layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        labels = LablesDataBase.getLabelsFromDataBase(database);
-    }
-
-    public void addNewLabel(Label label) {
-        labels.add(label);
-        LablesDataBase.addLabel(label, database);
-        notifyDataSetChanged();
-    }
-
-    public void removeLabel(int labelId) {
-        if (labels.size() > 0) {
-            LablesDataBase.removeLabel(labelId, database);
-            labels = LablesDataBase.getLabelsFromDataBase(database);
-            notifyDataSetChanged();
-        }
-    }
-
-    public void editLabel(int labelToEditId, Label label) {
-        if (labels.size() > 0) {
-            LablesDataBase.editLabel(labelToEditId, label, database);
-            labels = LablesDataBase.getLabelsFromDataBase(database);
-            notifyDataSetChanged();
-        }
+        this.labels = labels;
     }
 
     @Override
@@ -78,6 +55,11 @@ public class ListViewAdapter extends BaseAdapter {
         TextView textView = convertView.findViewById(R.id.listview_item_textview);
         textView.setText(headerText);
         return convertView;
+    }
+
+    public void changeLabelList(ArrayList<Label> newLabels) {
+            labels = newLabels;
+            notifyDataSetChanged();
     }
 
 }

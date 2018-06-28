@@ -11,7 +11,7 @@ public class LabelList implements Serializable {
 
     static {
         for (int i = 0; i < 15; i++) {
-            labelList.add(new Label("Тестовая заметка " + i, "id" + labelId, labelId));
+            labelList.add(new Label("Тестовая заметка " + i, "id" + labelId));
             labelId++;
         }
     }
@@ -22,7 +22,7 @@ public class LabelList implements Serializable {
 
     public static void addLabelToList(String labelHeaderText, String labelDescriptionText) {
         labelId++;
-        labelList.add(new Label(labelHeaderText, labelDescriptionText, labelId));
+        labelList.add(new Label(labelHeaderText, labelDescriptionText));
     }
 
     public static void editLabelToPosition(int labelId, String labelHeaderText, String labelDescriptionText) {
@@ -30,7 +30,7 @@ public class LabelList implements Serializable {
         if (position == 666) {
             Log.e("getPositionFromId", "Error");
         } else {
-            labelList.set(position, new Label(labelHeaderText, labelDescriptionText, labelId));
+            labelList.set(position, new Label(labelHeaderText, labelDescriptionText));
         }
     }
 
@@ -43,14 +43,14 @@ public class LabelList implements Serializable {
 
     private static int getPositionFromId(int labelId) {
         int thisLabelId = 666;
-        if (labelList.size() > 0) {
-            for (int i = 0; i < labelList.size(); i++) {
-                if (labelList.get(i).getLabelId() == labelId) {
-                    thisLabelId = i;
-                    break;
-                } else thisLabelId = 666;
-            }
-        }
+//        if (labelList.size() > 0) {
+//            for (int i = 0; i < labelList.size(); i++) {
+//                if (labelList.get(i).getLabelId() == labelId) {
+//                    thisLabelId = i;
+//                    break;
+//                } else thisLabelId = 666;
+//            }
+//        }
         return thisLabelId;
     }
 

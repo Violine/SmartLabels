@@ -38,8 +38,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import alexander.korovin.com.smartlabels.Models.LabelListFromDB;
 import alexander.korovin.com.smartlabels.Utils.App;
 import alexander.korovin.com.smartlabels.Utils.LabelsBDHelper;
+import alexander.korovin.com.smartlabels.Utils.LablesDataBase;
 import alexander.korovin.com.smartlabels.Utils.ListViewAdapter;
 import alexander.korovin.com.smartlabels.Models.Label;
 import alexander.korovin.com.smartlabels.Models.LabelList;
@@ -61,8 +63,8 @@ public class MainActivity extends AppCompatActivity
     private Location currentLocation;
     private MyLocationListener locationListener = new MyLocationListener(this);
     private String currentLocality = "";
-    private SQLiteDatabase database;
     private TextView listIsEmpty;
+    private ArrayList<Label> labels;
 
     private static final long MIN_DISTANCE_DELTA = 10; // 10 meters
     private static final long MIN_TIME_DELTA = 15000; // 1 min
@@ -70,11 +72,12 @@ public class MainActivity extends AppCompatActivity
     private static final String UNITS = "metric";
     private static final String LABEL_POSITION = "LABEL_POSITION";
     private static final String LABELS_FILE_NAME = "labels_base";
+    private LabelListFromDB labelList;
 
     @Override
     protected void onPause() {
         super.onPause();
-       // saveLabelsToFIle();
+        // saveLabelsToFIle();
     }
 
     @Override
@@ -86,8 +89,6 @@ public class MainActivity extends AppCompatActivity
         currentWeatherTextView = findViewById(R.id.currentWeatherTextView);
         setSupportActionBar(toolbar);
 
-        initDB();
-        //readLabelsFromFIle();
         initListView();
         initFloatingActionButton();
         startLocation();
@@ -126,10 +127,6 @@ public class MainActivity extends AppCompatActivity
                 Toast.makeText(MainActivity.this, "An error occurred during networking", Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    private void initDB() {
-        database = new LabelsBDHelper(getApplicationContext()).getWritableDatabase();
     }
 
     private void startLocation() {
@@ -215,10 +212,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initListView() {
+
+        getNewLabelList();
+
         listView = findViewById(R.id.smartlabels_list_view);
         listIsEmpty = findViewById(R.id.empty);
         listView.setEmptyView(listIsEmpty);
-        listViewAdapter = new ListViewAdapter(getApplicationContext(), database);
+
+        listViewAdapter = new ListViewAdapter(getApplicationContext(), labels);
         listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
         listView.setAdapter(listViewAdapter);
         listView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
@@ -252,8 +253,10 @@ public class MainActivity extends AppCompatActivity
             public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.action_remove_label:
+
                         deleteSelectedItems();
-                        listViewAdapter.notifyDataSetChanged();
+                        listViewAdapter.changeLabelList(LabelListFromDB.getLabelList());
+
                         for (int i = 0; i < listView.getCount(); i++)
                             listView.setItemChecked(i, false);
                         mode.finish();
@@ -270,21 +273,21 @@ public class MainActivity extends AppCompatActivity
                 for (int i = 0; i < checkedElement.size(); i++) {
                     int position = checkedElement.keyAt(i);
                     if (checkedElement.get(position)) {
-                        idForRemove.add(LabelList.getLabelList().get(position).getLabelId());
+                        idForRemove.add(LabelListFromDB.getLabelList().get(position).getLabelId());
                     }
                 }
                 for (int i = 0; i < idForRemove.size(); i++) {
-                    LabelList.removeLabelToPosition(idForRemove.get(i));
+                    LabelListFromDB.removeLabel(idForRemove.get(i));
                 }
             }
 
             @Override
             public void onDestroyActionMode(ActionMode mode) {
-               // labels = LabelList.getLabelList();
-//                for (int i = 0; i < labels.size(); i++) {
-//                    labels.get(i).setChecked(false);
-//                }
-                listViewAdapter.notifyDataSetChanged();
+                ArrayList<Label> labelsToUnchecked = LabelListFromDB.getLabelList();
+                for (int i = 0; i < labelsToUnchecked.size(); i++) {
+                    labelsToUnchecked.get(i).setChecked(false);
+                }
+                listViewAdapter.changeLabelList(labelsToUnchecked);
             }
         });
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -294,6 +297,11 @@ public class MainActivity extends AppCompatActivity
                 //popupMenuInit(view, position);
             }
         });
+    }
+
+    private void getNewLabelList() {
+        labelList = new LabelListFromDB(getApplicationContext());
+        labels = labelList.getLabelList();
     }
 
     private void startLabelInfoActivity(int position) {
@@ -353,14 +361,13 @@ public class MainActivity extends AppCompatActivity
                 Intent intent = new Intent(MainActivity.this, AddLabelActivity.class);
                 intent.putExtra("LABEL_HEADER", oldLabel.getLabelHeader());
                 intent.putExtra("LABEL_DESCRIPTION", oldLabel.getLabelDescription());
-                intent.putExtra("ID", oldLabel.getLabelId());
                 intent.putExtra("EDIT", "EDIT");
                 startActivity(intent);
                 listViewAdapter.notifyDataSetChanged();
                 return true;
             }
             case R.id.action_remove_label: {
-                LabelList.removeLabelToPosition(LabelList.getLabelList().get(position).getLabelId());
+                //  LabelList.removeLabelToPosition(LabelList.getLabelList().get(position).getLabelId());
                 listViewAdapter.notifyDataSetChanged();
                 return true;
             }
@@ -387,7 +394,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        //readLabelsFromFIle();
+        if (listViewAdapter != null && labelList != null) {
+            getNewLabelList();
+            listViewAdapter.changeLabelList(labels);
+        }
         if (checkPermission()) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, locationListener);
             currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);

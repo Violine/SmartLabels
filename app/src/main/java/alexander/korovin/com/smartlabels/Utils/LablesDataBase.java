@@ -14,6 +14,7 @@ public class LablesDataBase {
     private static final String COLUMN_ID = "_id";
     private static final String COLUMN_LABEL_TITLE = "Title";
     private static final String COLUMN_LABEL_DESCRIPTION = "Description";
+    private static ArrayList<Label> labels;
 
     public static void createTable(SQLiteDatabase database) {
         database.execSQL("CREATE TABLE " + TABLE_NAME + " (" + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -40,13 +41,15 @@ public class LablesDataBase {
 
     public static ArrayList<Label> getLabelsFromDataBase(SQLiteDatabase database) {
         Cursor cursor = database.query(TABLE_NAME, null, null, null, null, null, null);
-        ArrayList<Label> labels = null;
+        labels = new ArrayList<>();
         if (cursor != null & cursor.moveToFirst()) {
             int labelIDColumnIndex = cursor.getColumnIndex(COLUMN_ID);
             int labelTitleColumnIndex = cursor.getColumnIndex(COLUMN_LABEL_TITLE);
             int labelDescriptionColumnIndex = cursor.getColumnIndex(COLUMN_LABEL_DESCRIPTION);
             do {
-                labels.add(new Label((cursor.getString(labelTitleColumnIndex)), cursor.getString(labelDescriptionColumnIndex), cursor.getInt(labelIDColumnIndex)));
+                Label label = new Label(cursor.getString(labelTitleColumnIndex), cursor.getString(labelDescriptionColumnIndex));
+                label.setLabelId(cursor.getInt(labelIDColumnIndex));
+                labels.add(label);
             } while (cursor.moveToNext());
             try {
                 cursor.close();

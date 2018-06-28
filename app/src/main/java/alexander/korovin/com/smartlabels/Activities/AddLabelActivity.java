@@ -1,6 +1,6 @@
 package alexander.korovin.com.smartlabels.Activities;
 
-import android.os.Environment;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -8,7 +8,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import alexander.korovin.com.smartlabels.Models.Label;
 import alexander.korovin.com.smartlabels.Models.LabelList;
+import alexander.korovin.com.smartlabels.Models.LabelListFromDB;
 import alexander.korovin.com.smartlabels.R;
 
 public class AddLabelActivity extends AppCompatActivity {
@@ -19,7 +21,6 @@ public class AddLabelActivity extends AppCompatActivity {
     private String oldHeaderText;
     private String oldDescriptionText;
     private int position;
-    private static final String LABELS_FILE_NAME = "labels_base";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,7 +31,7 @@ public class AddLabelActivity extends AppCompatActivity {
         if (getIntent().getStringExtra("LABEL_HEADER") != null) {
             oldHeaderText = getIntent().getStringExtra("LABEL_HEADER");
             oldDescriptionText = getIntent().getStringExtra("LABEL_DESCRIPTION");
-            position = getIntent().getIntExtra("ID", 0);
+            position = getIntent().getIntExtra("POSITION", 0);
             labelDescriptionText.setText(oldDescriptionText);
             labelHeaderText.setText(oldHeaderText);
         }
@@ -50,16 +51,15 @@ public class AddLabelActivity extends AppCompatActivity {
                         if (labelDescriptionText.getText().toString().equals("")) {
                             labelDescriptionText.setText("");
                         }
-                        LabelList.addLabelToList(labelHeaderText.getText().toString(), labelDescriptionText.getText().toString());
-                        //                      //  String pathToBase = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/" + LABELS_FILE_NAME;
-                        //                      //  SaveReadToFileUtils.saveToFile(pathToBase);
-
+                        LabelListFromDB.addNewLabel(new Label(labelHeaderText.getText().toString(), labelDescriptionText.getText().toString()));
                         finish();
                     } else {
                         Toast.makeText(AddLabelActivity.this, R.string.enter_label_name, Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    LabelList.editLabelToPosition(position, labelHeaderText.getText().toString(), labelDescriptionText.getText().toString());
+                    LabelListFromDB.editLabel(position, new Label(labelHeaderText.getText().toString(), labelDescriptionText.getText().toString()));
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
                     finish();
                 }
             }

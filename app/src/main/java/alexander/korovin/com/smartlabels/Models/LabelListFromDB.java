@@ -2,25 +2,34 @@ package alexander.korovin.com.smartlabels.Models;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
-import android.view.LayoutInflater;
 
 import java.util.ArrayList;
 
+import alexander.korovin.com.smartlabels.Utils.LabelsBDHelper;
 import alexander.korovin.com.smartlabels.Utils.LablesDataBase;
 
 public class LabelListFromDB {
     private static ArrayList<Label> labels;
-    private Context context;
+    private static SQLiteDatabase database;
+    private static Context context;
+
+    public LabelListFromDB(Context context) {
+        this.context = context;
+    }
 
 
-    public static ArrayList<Label> getLabelListFromDB(SQLiteDatabase database) {
+    public static ArrayList<Label> getLabelList() {
+        initDB();
         labels = LablesDataBase.getLabelsFromDataBase(database);
+        return labels;
     }
 
 
     public static void addNewLabel(Label label) {
-        labels.add(label);
+        initDB();
         LablesDataBase.addLabel(label, database);
+        labels = LablesDataBase.getLabelsFromDataBase(database);
+
     }
 
     public static void removeLabel(int labelId) {
@@ -30,10 +39,15 @@ public class LabelListFromDB {
         }
     }
 
-    public static void editLabel(int labelToEditId, Label label) {
+    public static void editLabel(int position, Label label) {
         if (labels.size() > 0) {
+            int labelToEditId = labels.get(position).getLabelId();
             LablesDataBase.editLabel(labelToEditId, label, database);
             labels = LablesDataBase.getLabelsFromDataBase(database);
         }
+    }
+
+    private static void initDB() {
+        database = new LabelsBDHelper(context).getWritableDatabase();
     }
 }
