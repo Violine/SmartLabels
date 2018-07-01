@@ -30,7 +30,7 @@
         <activity
             android:name=".Activities.LabelInfoActivity"
             android:label="@string/title_activity_label_info"
-            android:theme="@style/Theme.AppCompat.Light.Dialog" />
+            android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 
 </manifest>

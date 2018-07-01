@@ -20,4 +20,6 @@
     <string name="edit">EDIT</string>
     <string name="save">SAVE</string>
     <string name="no_labels">Нет записей</string>
+    <string name="share">SHARE</string>
+    <string name="share_resut">Share label</string>
 </resources>
