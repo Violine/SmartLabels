@@ -34,6 +34,7 @@ public class LabelInfoActivity extends AppCompatActivity {
 
     private void initUi() {
         toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle(R.string.label_info);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -74,6 +75,10 @@ public class LabelInfoActivity extends AppCompatActivity {
                 shareResult(labelName.getText().toString());
                 return true;
             }
+            case android.R.id.home:
+                Intent intent = new Intent(LabelInfoActivity.this, MainActivity.class);
+                startActivity(intent);
+                return true;
             default:
                 return false;
         }

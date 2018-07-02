@@ -98,19 +98,6 @@ public class MainActivity extends AppCompatActivity
         //initNavigationView();
     }
 
-    private void readLabelsFromFIle() {
-        String pathToBase = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/" + LABELS_FILE_NAME;
-        // labels = SaveReadToFileUtils.readFromFile(pathToBase);
-        if (listViewAdapter != null) {
-            listViewAdapter.notifyDataSetChanged();
-        }
-    }
-
-    private void saveLabelsToFIle() {
-        String pathToBase = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/" + LABELS_FILE_NAME;
-        // SaveReadToFileUtils.saveToFile(pathToBase);
-    }
-
     private void getWeather(String currentLocality) {
         App.getApi().getData(currentLocality, APP_ID_KEY, UNITS).enqueue(new Callback<Weather>() {
 
@@ -212,7 +199,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initListView() {
-
         getNewLabelList();
 
         listView = findViewById(R.id.smartlabels_list_view);
@@ -331,7 +317,7 @@ public class MainActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            finishAffinity();
         }
     }
 
@@ -367,7 +353,6 @@ public class MainActivity extends AppCompatActivity
                 return true;
             }
             case R.id.action_remove_label: {
-                //  LabelList.removeLabelToPosition(LabelList.getLabelList().get(position).getLabelId());
                 listViewAdapter.notifyDataSetChanged();
                 return true;
             }
@@ -462,7 +447,6 @@ class MyLocationListener implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
         if (location != null) {
-            Toast.makeText(context, "КООРДИНАТЫ ОБНОВЛЕНЫ", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(context, "НЕ УДАЛОСЬ ОПРЕДЕЛИТЬ КООРДИНАТЫ", Toast.LENGTH_SHORT).show();
         }

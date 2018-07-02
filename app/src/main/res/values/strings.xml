@@ -22,4 +22,5 @@
     <string name="no_labels">Нет записей</string>
     <string name="share">SHARE</string>
     <string name="share_resut">Share label</string>
+    <string name="label_info">Label info</string>
 </resources>

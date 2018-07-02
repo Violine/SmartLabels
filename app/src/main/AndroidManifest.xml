@@ -17,20 +17,22 @@
         <activity
             android:name=".Activities.MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".Activities.AddLabelActivity"
+            android:theme="@style/Theme.AppCompat.Light.Dialog.NoTitle" />
+        <activity
+            android:name=".Activities.LabelInfoActivity"
+            android:label="@string/title_activity_label_info"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".Activities.SplashActivity"
+            android:theme="@style/LabelSplahScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".Activities.AddLabelActivity"
-            android:theme="@style/Theme.AppCompat.Light.Dialog" />
-        <activity
-            android:name=".Activities.LabelInfoActivity"
-            android:label="@string/title_activity_label_info"
-            android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 
 </manifest>

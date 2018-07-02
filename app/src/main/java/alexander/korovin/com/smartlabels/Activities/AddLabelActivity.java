@@ -58,9 +58,9 @@ public class AddLabelActivity extends AppCompatActivity {
                     }
                 } else {
                     LabelListFromDB.editLabel(position, new Label(labelHeaderText.getText().toString(), labelDescriptionText.getText().toString()));
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    Intent intent = new Intent(AddLabelActivity.this, LabelInfoActivity.class);
+                    intent.putExtra("LABEL_POSITION", position);
                     startActivity(intent);
-                    finish();
                 }
             }
         });
