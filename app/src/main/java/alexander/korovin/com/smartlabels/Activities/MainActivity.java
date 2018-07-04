@@ -1,8 +1,10 @@
 package alexander.korovin.com.smartlabels.Activities;
 
 import android.Manifest;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Address;
@@ -12,6 +14,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -39,6 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import alexander.korovin.com.smartlabels.Models.LabelListFromDB;
+import alexander.korovin.com.smartlabels.Services.WeatherService;
 import alexander.korovin.com.smartlabels.Utils.App;
 import alexander.korovin.com.smartlabels.Utils.LabelsBDHelper;
 import alexander.korovin.com.smartlabels.Utils.LablesDataBase;
@@ -60,11 +64,14 @@ public class MainActivity extends AppCompatActivity
     private TextView currentLocationTextView;
     private TextView currentWeatherTextView;
     private LocationManager locationManager;
+
     private Location currentLocation;
     private MyLocationListener locationListener = new MyLocationListener(this);
-    private String currentLocality = "";
+    public static String currentLocality = "";
+
     private TextView listIsEmpty;
     private ArrayList<Label> labels;
+    private LabelListFromDB labelList;
 
     private static final long MIN_DISTANCE_DELTA = 10; // 10 meters
     private static final long MIN_TIME_DELTA = 15000; // 1 min
@@ -72,12 +79,30 @@ public class MainActivity extends AppCompatActivity
     private static final String UNITS = "metric";
     private static final String LABEL_POSITION = "LABEL_POSITION";
     private static final String LABELS_FILE_NAME = "labels_base";
-    private LabelListFromDB labelList;
+
+    private WeatherServiceConnection weatherServiceConnection = null;
+    private boolean isBind = false;
+    private WeatherService.ServiceBinder serviceBinder = null;
+
 
     @Override
     protected void onPause() {
         super.onPause();
         // saveLabelsToFIle();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (!isBind) {
+
+            /* Create intent object for starting a service */
+            Intent intent = new Intent(getApplicationContext(),
+                    WeatherService.class);
+
+            /* Bind to a service */
+            bindService(intent, weatherServiceConnection, BIND_AUTO_CREATE);
+        }
     }
 
     @Override
@@ -93,12 +118,13 @@ public class MainActivity extends AppCompatActivity
         initFloatingActionButton();
         startLocation();
         getWeather(currentLocality);
+        weatherServiceConnection = new WeatherServiceConnection();
 
         //initDrawerLayout(toolbar);
         //initNavigationView();
     }
 
-    private void getWeather(String currentLocality) {
+    public void getWeather(String currentLocality) {
         App.getApi().getData(currentLocality, APP_ID_KEY, UNITS).enqueue(new Callback<Weather>() {
 
             @Override
@@ -114,6 +140,15 @@ public class MainActivity extends AppCompatActivity
                 Toast.makeText(MainActivity.this, "An error occurred during networking", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (isBind) {
+            this.unbindService(weatherServiceConnection);
+            isBind = false;
+        }
     }
 
     private void startLocation() {
@@ -435,6 +470,28 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    class WeatherServiceConnection implements ServiceConnection {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            serviceBinder = (WeatherService.ServiceBinder) service;
+            if (serviceBinder != null) isBind = true;
+            if (isBind) serviceBinder.getWeatherService().getWeather();
+
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isBind = false;
+            serviceBinder = null;
+        }
+
+        @Override
+        public void onBindingDied(ComponentName name) {
+
+        }
+    }
 }
 
 class MyLocationListener implements LocationListener {
@@ -467,3 +524,4 @@ class MyLocationListener implements LocationListener {
 
     }
 }
+

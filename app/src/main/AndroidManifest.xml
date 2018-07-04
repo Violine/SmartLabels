@@ -14,10 +14,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <service android:name=".Services.WeatherService" />
+
         <activity
             android:name=".Activities.MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".Activities.AddLabelActivity"
             android:theme="@style/Theme.AppCompat.Light.Dialog.NoTitle" />
@@ -25,7 +27,8 @@
             android:name=".Activities.LabelInfoActivity"
             android:label="@string/title_activity_label_info"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".Activities.SplashActivity"
+        <activity
+            android:name=".Activities.SplashActivity"
             android:theme="@style/LabelSplahScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
